@@ -7,7 +7,7 @@ Python dependencies:
 - [discord.py[voice]](https://github.com/Rapptz/discord.py)
 - [wavelink](https://github.com/PythonistaGuild/Wavelink)
 - [Spotipy](https://github.com/plamere/spotipy)
-- [oraw](https://github.com/praw-dev/praw)
+- [praw](https://github.com/praw-dev/praw)
 - [tabulate](https://github.com/astanin/python-tabulate)
 - [Pillow](https://github.com/python-pillow/Pillow)
 - [aiohttp](https://github.com/aio-libs/aiohttp)
