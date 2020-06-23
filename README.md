@@ -21,7 +21,7 @@ If you wish to run this, you will need the following:
 - Spotify API credentials
 - Reddit API credentials
 
-Fantasy DB was an old Cog that I have not tested in a long time. For it to run, you will need:
+Fantasy DB is an old Cog that I have not tested in a long time. For it to run, you will need:
 - Steam API key
 
 This bot was coded as a learning project. As such, some of the code is very old and messy.
