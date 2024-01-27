@@ -6,7 +6,6 @@ Requires Python version 3.10 or later.
 Python dependencies:
 - [discord.py[voice]](https://github.com/Rapptz/discord.py)
 - [wavelink](https://github.com/PythonistaGuild/Wavelink)
-- [Spotipy](https://github.com/plamere/spotipy)
 - [praw](https://github.com/praw-dev/praw)
 - [tabulate](https://github.com/astanin/python-tabulate)
 - [Pillow](https://github.com/python-pillow/Pillow)
@@ -18,7 +17,6 @@ Requires a [Lavalink](https://github.com/Frederikam/Lavalink) server for audio t
 
 If you wish to run this, you will need the following:
 - Discord bot token
-- Spotify API credentials
 - Reddit API credentials
 
 Fantasy DB is an old Cog that I have not tested in a long time. For it to run, you will need:
