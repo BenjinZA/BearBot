@@ -6,7 +6,7 @@ Requires Python version 3.10 or later.
 Python dependencies:
 - [discord.py[voice]](https://github.com/Rapptz/discord.py)
 - [wavelink](https://github.com/PythonistaGuild/Wavelink)
-- [praw](https://github.com/praw-dev/praw)
+- [asyncpraw](https://github.com/praw-dev/asyncpraw)
 - [tabulate](https://github.com/astanin/python-tabulate)
 - [Pillow](https://github.com/python-pillow/Pillow)
 - [aiohttp](https://github.com/aio-libs/aiohttp)
