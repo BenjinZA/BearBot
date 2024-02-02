@@ -1,5 +1,5 @@
 # BearBot
-Github repo of custom Discord bot.
+GitHub repo of custom Discord bot.
 
 Requires Python version 3.10 or later.
 
