@@ -18,5 +18,15 @@ Requires a [Lavalink](https://github.com/Frederikam/Lavalink) server for audio t
 If you wish to run this, you will need the following:
 - Discord bot token
 - Reddit API credentials
-
+- Create `bot_info.json` file with the following:
+  ```
+  'dev'               -> True/False for development
+  'token'             -> Discord bot token string
+  'lavalink'          -> location of Lavalink jar
+  'lavalink_ip'       -> IP of Lavalink server (used in music cog)
+  'lavalink_password' -> password of Lavalink server (used in music cog)
+  'reddit_id'         -> client_id of reddit account
+  'reddit_secret'     -> client_secret of reddit account
+  'reddit_agent'      -> user_agent of reddit account
+   ```
 This bot was coded as a learning project. As such, some of the code is very old and messy.
