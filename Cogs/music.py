@@ -34,6 +34,29 @@ class VoiceState:
         else:
             await self.music_msg.edit(embed=embed_music_msg)
 
+    async def start_audio_player(self):
+        self.disconnect_if_not_playing.start()
+
+    async def stop_audio_player(self):
+        self.disconnect_if_not_playing.cancel()
+
+    @tasks.loop()
+    async def disconnect_if_not_playing(self):
+        counter = 0
+        while True:
+            await asyncio.sleep(60)
+            if self.voice_channel:
+                node = wavelink.Pool.get_node()
+                player = node.get_player(self.guild.id)
+
+                if player.playing:
+                    counter = 0
+                else:
+                    counter += 1
+
+                if counter >= 5:
+                    await player.disconnect(force=True)
+
 
 class Music(commands.Cog):
 
@@ -66,6 +89,13 @@ class Music(commands.Cog):
 
     @commands.Cog.listener()
     async def on_wavelink_inactive_player(self, player: wavelink.Player):
+        print("it time")
+        await self.player_disconnect(player.guild)
+
+    async def player_disconnect(self, guild):
+        node = wavelink.Pool.get_node()
+        player = node.get_player(guild.id)
+        del self.voice_states[guild.id]
         await player.disconnect(force=True)
 
     def get_voice_state(self, guild):
@@ -79,6 +109,7 @@ class Music(commands.Cog):
 
     async def voice_connect(self, ctx):
         await ctx.author.voice.channel.connect(cls=wavelink.Player)
+        await self.voice_states[ctx.guild.id].start_audio_player()
         self.voice_states[ctx.guild.id].voice_channel = ctx.author.voice.channel
         await ctx.guild.change_voice_state(channel=ctx.author.voice.channel, self_mute=False, self_deaf=True)
 
@@ -214,11 +245,7 @@ class Music(commands.Cog):
     @commands.hybrid_command(brief='Stop the music')
     async def stop(self, ctx: commands.Context) -> None:
         if self.voice_states[ctx.guild.id].voice_channel is not None and ctx.author.voice.channel == self.voice_states[ctx.guild.id].voice_channel:
-            state = self.get_voice_state(ctx.guild)
-            node = wavelink.Pool.get_node()
-            player = node.get_player(ctx.guild.id)
-            del self.voice_states[ctx.guild.id]
-            await player.disconnect(force=True)
+            await self.player_disconnect(ctx.guild)
 
         await ctx.message.delete()
 
