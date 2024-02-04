@@ -125,8 +125,10 @@ class Music(commands.Cog):
             if not player.playing:
                 await player.play(player.queue.get(), volume=state.saved_volume)
 
-        except:
-            await ctx.send('An error occurred trying to add the song to the queue', delete_after=5)
+        except Exception as e:
+            error_message = 'An error occurred trying to add the song to the queue:'
+            error_message += f'\n```\n{e}\n```'
+            await ctx.send(error_message)
             return
 
         await ctx.message.delete()
