@@ -89,14 +89,13 @@ class Music(commands.Cog):
 
     @commands.Cog.listener()
     async def on_wavelink_inactive_player(self, player: wavelink.Player):
-        print("it time")
         await self.player_disconnect(player.guild)
 
     async def player_disconnect(self, guild):
         node = wavelink.Pool.get_node()
         player = node.get_player(guild.id)
-        del self.voice_states[guild.id]
         await player.disconnect(force=True)
+        del self.voice_states[guild.id]
 
     def get_voice_state(self, guild):
         state = self.voice_states.get(guild.id)
@@ -112,6 +111,9 @@ class Music(commands.Cog):
         await self.voice_states[ctx.guild.id].start_audio_player()
         self.voice_states[ctx.guild.id].voice_channel = ctx.author.voice.channel
         await ctx.guild.change_voice_state(channel=ctx.author.voice.channel, self_mute=False, self_deaf=True)
+        node = wavelink.Pool.get_node()
+        player = node.get_player(ctx.guild.id)
+        player.autoplay = wavelink.AutoPlayMode.partial
 
     @commands.hybrid_command(brief='View the current songs in the playlist. By default will display 10 songs.')
     async def queue(self, ctx: commands.Context, number: int = 10) -> None:
@@ -212,11 +214,9 @@ class Music(commands.Cog):
         node = wavelink.Pool.get_node()
         player = node.get_player(ctx.guild.id)
 
-        if state.voice_channel is None:
+        if state.voice_channel is None or player is None:
             if ctx.author.voice:
                 await self.voice_connect(ctx)
-                player = node.get_player(ctx.guild.id)
-                player.autoplay = wavelink.AutoPlayMode.partial
             else:
                 await ctx.send('User not in a voice channel', delete_after=5)
                 raise commands.CommandError('Author not connected to a voice channel.')
