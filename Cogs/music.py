@@ -162,7 +162,7 @@ class Music(commands.Cog):
             error_message = 'An error occurred trying to add the song to the queue:'
             error_message += f'\n```\n{e}\n```'
             await ctx.send(error_message)
-            return
+            raise e
 
         await ctx.message.delete()
 

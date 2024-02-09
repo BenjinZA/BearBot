@@ -1,5 +1,4 @@
 import subprocess
-
 import discord
 from discord.ext import commands
 import asyncio
@@ -7,6 +6,7 @@ import os
 import pickle
 import time
 import json
+import logging
 
 
 def discord_client():
@@ -126,16 +126,16 @@ def discord_client():
     return client, token
 
 
-async def run_client():
+def run_client():
+    handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='a')
     while True:
         client, token = discord_client()
         try:
-            async with client:
-                await client.start(token)
+            client.run(token, log_handler=handler, log_level=logging.ERROR)
         except Exception as e:
             print('Error: ', e)
         print('Restarting')
         time.sleep(5)
 
 
-asyncio.run(run_client())
+run_client()
