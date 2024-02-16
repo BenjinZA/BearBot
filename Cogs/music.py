@@ -103,9 +103,6 @@ class MusicButtons(discord.ui.View):
     @discord.ui.button(label='Stop', emoji='⏹️', style=discord.ButtonStyle.red)
     async def stop_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.music.player_disconnect(interaction.guild)
-        embed = interaction.message.embeds[0]
-        embed.title = embed.title + ' (disconnected)'
-        await interaction.response.edit_message(embed=embed, view=None)
 
 
 class VoiceState:
@@ -188,8 +185,14 @@ class Music(commands.Cog):
         await self.player_disconnect(player.guild)
 
     async def player_disconnect(self, guild):
+        state = self.get_voice_state(guild)
         node = wavelink.Pool.get_node()
         player = node.get_player(guild.id)
+
+        embed = state.music_msg.embeds[0]
+        embed.title = embed.title + ' (disconnected)'
+        await state.music_msg.edit(embed=embed, view=None)
+
         await player.disconnect(force=True)
         del self.voice_states[guild.id]
 
