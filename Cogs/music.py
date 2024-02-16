@@ -11,11 +11,109 @@ if not discord.opus.is_loaded() and platform.system() == 'linux':
     discord.opus.load_opus(ctypes.util.find_library('opus'))
 
 
+class VolumeButtons(discord.ui.View):
+
+    def __init__(self, player):
+        super().__init__()
+        self.player = player
+
+    @discord.ui.button(label='10', style=discord.ButtonStyle.grey)
+    async def volume_10(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await self.player.set_volume(10)
+        await interaction.message.delete()
+
+    @discord.ui.button(label='20', style=discord.ButtonStyle.grey)
+    async def volume_20(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await self.player.set_volume(20)
+        await interaction.message.delete()
+
+    @discord.ui.button(label='30', style=discord.ButtonStyle.grey)
+    async def volume_30(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await self.player.set_volume(30)
+        await interaction.message.delete()
+
+    @discord.ui.button(label='40', style=discord.ButtonStyle.grey)
+    async def volume_40(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await self.player.set_volume(40)
+        await interaction.message.delete()
+
+    @discord.ui.button(label='50', style=discord.ButtonStyle.grey)
+    async def volume_50(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await self.player.set_volume(50)
+        await interaction.message.delete()
+
+    @discord.ui.button(label='60', style=discord.ButtonStyle.grey)
+    async def volume_60(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await self.player.set_volume(60)
+        await interaction.message.delete()
+
+    @discord.ui.button(label='70', style=discord.ButtonStyle.grey)
+    async def volume_70(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await self.player.set_volume(70)
+        await interaction.message.delete()
+
+    @discord.ui.button(label='80', style=discord.ButtonStyle.grey)
+    async def volume_80(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await self.player.set_volume(80)
+        await interaction.message.delete()
+
+    @discord.ui.button(label='90', style=discord.ButtonStyle.grey)
+    async def volume_90(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await self.player.set_volume(90)
+        await interaction.message.delete()
+
+    @discord.ui.button(label='100', style=discord.ButtonStyle.grey)
+    async def volume_100(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await self.player.set_volume(100)
+        await interaction.message.delete()
+
+
+class MusicButtons(discord.ui.View):
+
+    def __init__(self, player, music):
+        super().__init__()
+        self.player = player
+        self.music = music
+
+    @discord.ui.button(label='Pause', emoji='⏸️', style=discord.ButtonStyle.grey)
+    async def play_pause(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if self.player.paused:
+            await self.player.pause(False)
+            button.style=discord.ButtonStyle.grey
+            button.label = 'Pause'
+            button.emoji = '⏸️'
+            await interaction.response.edit_message(view=self)
+        else:
+            await self.player.pause(True)
+            button.style=discord.ButtonStyle.green
+            button.label = 'Play'
+            button.emoji = '▶️'
+            await interaction.response.edit_message(view=self)
+
+    @discord.ui.button(label='Skip', emoji='⏭️', style=discord.ButtonStyle.blurple)
+    async def skip_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await self.player.stop()
+        await interaction.response.edit_message(view=self)
+
+    @discord.ui.button(label='Set volume', emoji='🔊', style=discord.ButtonStyle.green)
+    async def volume_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.channel.send('Pick volume', view=VolumeButtons(self.player))
+        await interaction.response.edit_message(view=self)
+
+    @discord.ui.button(label='Stop', emoji='⏹️', style=discord.ButtonStyle.red)
+    async def stop_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await self.music.player_disconnect(interaction.guild)
+        embed = interaction.message.embeds[0]
+        embed.title = embed.title + ' (disconnected)'
+        await interaction.response.edit_message(embed=embed, view=None)
+
+
 class VoiceState:
 
-    def __init__(self, bot, guild):
+    def __init__(self, bot, guild, music):
         self.bot = bot
         self.guild = guild
+        self.music = music
 
         self.saved_volume = 10
         self.music_msg = None
@@ -24,13 +122,11 @@ class VoiceState:
 
         self.playlist = []
 
-    async def set_music_msg(self, song):
+    async def set_music_msg(self, song, player):
         embed_music_msg = discord.Embed(title='BearBot Music Player', description=f'Now playing: {song.title}')
         embed_music_msg.set_image(url=song.artwork)
         if self.music_msg is None:
-            self.music_msg = await self.music_channel.send(embed=embed_music_msg)
-            await self.music_msg.add_reaction('⏯')
-            await self.music_msg.add_reaction('⏩')
+            self.music_msg = await self.music_channel.send(embed=embed_music_msg, view=MusicButtons(player, self.music))
         else:
             await self.music_msg.edit(embed=embed_music_msg)
 
@@ -80,7 +176,7 @@ class Music(commands.Cog):
     @commands.Cog.listener()
     async def on_wavelink_track_start(self, payload):
         state = self.voice_states.get(payload.player.guild.id)
-        await state.set_music_msg(payload.track)
+        await state.set_music_msg(payload.track, payload.player)
 
     @commands.Cog.listener()
     async def on_wavelink_track_end(self, payload):
@@ -101,7 +197,7 @@ class Music(commands.Cog):
         state = self.voice_states.get(guild.id)
 
         if state is None:
-            state = VoiceState(self.bot, guild)
+            state = VoiceState(self.bot, guild, self)
             self.voice_states[guild.id] = state
 
         return state
@@ -307,28 +403,6 @@ class Music(commands.Cog):
     @shuffle.before_invoke
     async def ensure_music_channel(self, ctx):
         await self.check_node_and_voice(ctx)
-
-    @commands.Cog.listener()
-    async def on_reaction_add(self, reaction, user):
-        self.get_voice_state(reaction.message.guild)
-
-        if reaction.message.channel.name == 'music':
-            if user == self.bot.user or reaction.message.id != self.voice_states[reaction.message.guild.id].music_msg.id:
-                return
-
-            node = wavelink.Pool.get_node()
-            player = node.get_player(reaction.message.guild.id)
-
-            if reaction.emoji == '⏯':
-                if player.paused:
-                    await player.pause(False)
-                else:
-                    await player.pause(True)
-                await reaction.message.remove_reaction('⏯', user)
-
-            if reaction.emoji == '⏩':
-                await player.stop()
-                await reaction.message.remove_reaction('⏩', user)
 
 
 async def setup(bot):
