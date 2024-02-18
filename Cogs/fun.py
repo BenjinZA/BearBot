@@ -9,6 +9,55 @@ from Cogs.Utils import reddit
 truths = truth.truth()
 
 
+class AddTruthButtons(discord.ui.View):
+
+    def __init__(self):
+        super().__init__()
+        self.edited = False
+
+    @discord.ui.button(label='Edit truth', style=discord.ButtonStyle.blurple)
+    async def edit_truth_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        self.edited = True
+        await interaction.response.send_modal(AddTruthModal())
+
+    @discord.ui.button(label='Yes', style=discord.ButtonStyle.green)
+    async def add_truth_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if not self.edited:
+            await interaction.response.edit_message(view=self)
+        else:
+            newtruth = interaction.message.content[interaction.message.content.find('...'):].replace('... ', '')
+            truths.storeTruth(newtruth)
+            await interaction.response.edit_message(content=f'Truth has been added! Sample of new truth:\n... {newtruth}', view=None)
+
+    @discord.ui.button(label='No', style=discord.ButtonStyle.red)
+    async def reject_truth_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.edit_message(content='Truth was not added', view=None)
+
+
+class AddTruthModal(discord.ui.Modal, title='Time to add a new truth!'):
+    newtruth = discord.ui.TextInput(label='New truth', default='... is a cool guy')
+
+    async def on_submit(self, interaction: discord.Interaction):
+        newtruth = self.newtruth.value[self.newtruth.value.find('...'):].replace('... ', '')
+        await interaction.response.edit_message(content=f'Is this the truth you want to add? Sample of new truth:\n... {newtruth}')
+
+
+class DeleteTruthButtons(discord.ui.View):
+
+    def __init__(self, truth_number):
+        super().__init__()
+        self.truth_number = truth_number
+
+    @discord.ui.button(label='Yes', style=discord.ButtonStyle.green)
+    async def delete_truth_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        truths.deleteTruth(self.truth_number)
+        await interaction.response.edit_message(content='Truth has been deleted', view=None)
+
+    @discord.ui.button(label='No', style=discord.ButtonStyle.red)
+    async def keep_truth_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.edit_message('Truth was not deleted', view=None)
+
+
 class Fun(commands.Cog):
 
     def __init__(self, bot):
@@ -23,37 +72,9 @@ class Fun(commands.Cog):
     async def thetruth(self, ctx: commands.Context, name: str = 'Chris') -> None:
         await ctx.send(truths.returnTruth(name))
 
-    @commands.hybrid_command(brief='Improve the ultimate command. Suggest a new truth to add', usage='NewTruth - New truth to add')
-    async def addtruth(self, ctx: commands.Context, *, newtruth: str = '') -> None:
-        voters = []
-        vote_count = 0
-        timeout = False
-
-        if newtruth == '':
-            await ctx.send('Please supply a new truth after the command')
-            return
-
-        truth_msg = await ctx.send('%s wants to add a new truth. With enough 👍 votes, the truth will be added to the list.\nSample of new truth:\nMarno %s' % (ctx.author.name, newtruth))
-
-        await truth_msg.add_reaction('👍')
-
-        while timeout == False:
-            try:
-                reaction, user = await self.bot.wait_for('reaction_add', timeout=60.0, check=lambda reaction, user: reaction.emoji == '👍')
-            except asyncio.TimeoutError:
-                timeout = True
-            else:
-                if reaction.message.id == truth_msg.id and user != self.bot.user and user not in voters:
-                    voters.append(user)
-                    vote_count += 1
-                if vote_count >= 3:
-                    break
-
-        if vote_count >= 3:
-            truths.storeTruth(newtruth)
-            await ctx.send('Truth has been added!')
-        else:
-            await ctx.send('Truth not added. Timeout has been reached without enough votes.')
+    @commands.hybrid_command(brief='Improve the ultimate command. Suggest a new truth to add')
+    async def addtruth(self, ctx: commands.Context) -> None:
+        await ctx.send(f'Time to add a new truth!', view=AddTruthButtons())
 
     @commands.hybrid_command(brief='List all available options for the ultimate command')
     async def listtruths(self, ctx: commands.Context) -> None:
@@ -65,35 +86,11 @@ class Fun(commands.Cog):
 
     @commands.hybrid_command(brief='Suggest a truth to delete')
     async def deletetruth(self, ctx: commands.Context, truth_number: int = 0) -> None:
-        voters = []
-        vote_count = 0
-        timeout = False
-
         if truth_number <= 0:
             await ctx.send('Please specify truth number that you want to vote on deleting. Use !listtruths to get list')
             return
 
-        truth_msg = await ctx.send('%s wants to delete a truth. With enough 👍 votes, the truth will be deleted from the list.\nThe truth is:\n%s' % (ctx.author.name, truths.truths[truth_number-1] % 'Jan'))
-
-        await truth_msg.add_reaction('👍')
-
-        while timeout == False:
-            try:
-                reaction, user = await self.bot.wait_for('reaction_add', timeout=60.0, check=lambda reaction, user: reaction.emoji == '👍')
-            except asyncio.TimeoutError:
-                timeout = True
-            else:
-                if reaction.message.id == truth_msg.id and user != self.bot.user and user not in voters:
-                    voters.append(user)
-                    vote_count += 1
-                if vote_count >= 3:
-                    break
-
-        if vote_count >= 3:
-            truths.deleteTruth(truth_number-1)
-            await ctx.send('Truth has been deleted!')
-        else:
-            await ctx.send('Truth not deleted. Timeout has been reached without enough votes.')
+        await ctx.send(f'Is this the truth you want to delete? \n{truths.truths[truth_number-1].replace("%s", "")}', view=DeleteTruthButtons(truth_number-1))
 
     @commands.hybrid_command(brief='Autists! Start your engines!')
     async def vroom(self, ctx: commands.Context, numracers: int = 3, tracklength: int = 19) -> None:
