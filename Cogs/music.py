@@ -148,7 +148,7 @@ class VoiceState:
                     counter += 1
 
                 if counter >= 5:
-                    await player.disconnect(force=True)
+                    await self.music.player_disconnect(self.guild)
 
 
 class Music(commands.Cog):
