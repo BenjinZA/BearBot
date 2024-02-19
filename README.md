@@ -13,7 +13,7 @@ Python dependencies:
 - [wordcloud](https://github.com/amueller/word_cloud)
 - [aiosqlite](https://github.com/omnilib/aiosqlite)
 
-Requires a [Lavalink](https://github.com/Frederikam/Lavalink) server for audio to work.
+Requires a [Lavalink](https://github.com/lavalink-devs/Lavalink) server for audio to work.
 
 If you wish to run this, you will need the following:
 - Discord bot token
