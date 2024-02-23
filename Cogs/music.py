@@ -100,8 +100,8 @@ class MusicButtons(discord.ui.View):
         await interaction.channel.send('Pick volume', view=VolumeButtons(self.player))
         await interaction.response.edit_message(view=self)
 
-    @discord.ui.button(label='Stop', emoji='⏹️', style=discord.ButtonStyle.red)
-    async def stop_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @discord.ui.button(label='Disconnect', emoji='⏹️', style=discord.ButtonStyle.red)
+    async def disconnect_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.music.player_disconnect(interaction.guild)
 
 
