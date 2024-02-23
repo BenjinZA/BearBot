@@ -14,6 +14,7 @@ Python dependencies:
 - [aiosqlite](https://github.com/omnilib/aiosqlite)
 
 Requires a [Lavalink](https://github.com/lavalink-devs/Lavalink) server for audio to work.
+When setting dev to false (see below), code will attempt to start Lavalink by itself.
 
 If you wish to run this, you will need the following:
 - Discord bot token
