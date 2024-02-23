@@ -177,8 +177,8 @@ class Music(commands.Cog):
 
     @commands.Cog.listener()
     async def on_wavelink_track_end(self, payload):
-        voice_state = self.get_voice_state(payload.player.guild)
-        voice_state.play_next_song.set()
+        state = self.get_voice_state(payload.player.guild)
+        state.play_next_song.set()
 
     @commands.Cog.listener()
     async def on_wavelink_inactive_player(self, player: wavelink.Player):
