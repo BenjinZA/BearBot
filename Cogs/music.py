@@ -117,8 +117,6 @@ class VoiceState:
         self.music_channel = None
         self.voice_channel = None
 
-        self.playlist = []
-
     async def set_music_msg(self, song, player):
         embed_music_msg = discord.Embed(title='BearBot Music Player', description=f'Now playing: {song.title}')
         embed_music_msg.set_image(url=song.artwork)
@@ -265,17 +263,6 @@ class Music(commands.Cog):
 
         await ctx.message.delete()
 
-    @commands.hybrid_command(brief='Shuffle the background playlist.')
-    async def shuffle(self, ctx: commands.Context) -> None:
-        if len(self.voice_states[ctx.guild.id].playlist) == 0:
-            await ctx.send('No background playlist to shuffle', delete_after=5)
-
-        else:
-            random.shuffle(self.voice_states[ctx.guild.id].playlist)
-            await ctx.send('Background playlist shuffled', delete_after=5)
-
-        await ctx.message.delete()
-
     async def check_node_and_voice(self, ctx):
         if ctx.channel.name != 'music':
             await ctx.send('Use #music channel for music commands', delete_after=5)
@@ -403,7 +390,6 @@ class Music(commands.Cog):
     @pause.before_invoke
     @resume.before_invoke
     @skip.before_invoke
-    @shuffle.before_invoke
     async def ensure_music_channel(self, ctx):
         await self.check_node_and_voice(ctx)
 
