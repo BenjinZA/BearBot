@@ -11,7 +11,6 @@ Python dependencies:
 - [Pillow](https://github.com/python-pillow/Pillow)
 - [aiohttp](https://github.com/aio-libs/aiohttp)
 - [wordcloud](https://github.com/amueller/word_cloud)
-- [aiosqlite](https://github.com/omnilib/aiosqlite)
 
 Requires a [Lavalink](https://github.com/lavalink-devs/Lavalink) server for audio to work.
 When setting dev to false (see below), code will attempt to start Lavalink by itself.
