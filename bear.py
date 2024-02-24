@@ -98,7 +98,10 @@ def discord_client():
             pass
 
         if not dev:
-            lavalink.terminate()
+            try:
+                lavalink.terminate()
+            except NameError:
+                pass
 
         await ctx.send('Attempting to restart Bear bot')
         await client.close()
