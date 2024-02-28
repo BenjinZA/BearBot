@@ -1,9 +1,12 @@
 import tabulate
 import discord
-from discord.ext import commands
+import os
+import pickle
+from discord.ext import commands, tasks
 from Cogs.Utils import opendota
 from Cogs.Utils import user
 from Cogs.Utils import reddit
+from Cogs.Utils.Dota import checkpatch
 
 sID = user.steamID()
 
@@ -12,6 +15,56 @@ class Dota(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
+        self.latest_timestamp = 0
+        self.check_dota_patch.start()
+
+        if os.path.isfile('Cogs/Utils/Dota/patch_users.txt'):
+            self.patch_users = pickle.load(open('Cogs/Utils/Dota/patch_users.txt', 'rb'))
+        else:
+            self.patch_users = []
+
+    @tasks.loop(minutes=1)
+    async def check_dota_patch(self):
+        await self.bot.wait_until_ready()
+        patch_data = await checkpatch.get_patches()
+
+        latest_timestamp = 0
+        patch_number = ''
+        for patch in patch_data['patches']:
+            if patch['patch_timestamp'] > latest_timestamp:
+                latest_timestamp = int(patch['patch_timestamp'])
+                patch_number = patch['patch_number']
+
+        if self.latest_timestamp == 0:
+            self.latest_timestamp = latest_timestamp
+
+        if self.latest_timestamp < latest_timestamp:
+            self.latest_timestamp = latest_timestamp
+            for patch_user_id in self.patch_users:
+                patch_user = self.bot.get_user(patch_user_id)
+                await patch_user.send(f'A new Dota 2 patch has been released ({patch_number})')
+
+    @commands.hybrid_command(brief='Register to receive Dota 2 patch notification DMs')
+    async def register(self, ctx: commands.Context) -> None:
+        if ctx.author.id in self.patch_users:
+            await ctx.send('You are already registered to receive Dota 2 patch notification DMs')
+
+        elif ctx.author.id not in self.patch_users:
+            self.patch_users.append(ctx.author.id)
+            pickle.dump(self.patch_users, open('Cogs/Utils/Dota/patch_users.txt', 'wb'))
+
+            await ctx.send('You have registered to receive Dota 2 patch notification DMs')
+
+    @commands.hybrid_command(brief='Register to receive Dota 2 patch notification DMs')
+    async def deregister(self, ctx: commands.Context) -> None:
+        if ctx.author.id not in self.patch_users:
+            await ctx.send('You are already deregistered from receiving Dota 2 patch notification DMs')
+
+        elif ctx.author.id in self.patch_users:
+            self.patch_users.remove(ctx.author.id)
+            pickle.dump(self.patch_users, open('Cogs/Utils/Dota/patch_users.txt', 'wb'))
+
+            await ctx.send('You will no longer receive Dota 2 patch notification DMs')
 
     @commands.hybrid_command(brief='Stores all Discord IDs of current server into database')
     async def loadids(self, ctx: commands.Context) -> None:

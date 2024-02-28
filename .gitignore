@@ -31,3 +31,4 @@
 /.idea/vcs.xml
 /Cogs/carel.py
 /Cogs/fantasy.py
+/Cogs/Utils/Dota/patch_users.txt
