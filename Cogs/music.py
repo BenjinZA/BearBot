@@ -1,6 +1,5 @@
 import asyncio
 import wavelink
-import random
 import discord
 from discord.ext import commands, tasks
 import ctypes.util
@@ -123,7 +122,7 @@ class VoiceState:
         if self.music_msg is None:
             self.music_msg = await self.music_channel.send(embed=embed_music_msg, view=MusicButtons(player, self.music))
         else:
-            await self.music_msg.edit(embed=embed_music_msg)
+            self.music_msg = await self.music_msg.edit(embed=embed_music_msg)
 
     async def start_audio_player(self):
         self.disconnect_if_not_playing.start()
@@ -189,7 +188,7 @@ class Music(commands.Cog):
 
         embed = state.music_msg.embeds[0]
         embed.title = embed.title + ' (disconnected)'
-        await state.music_msg.edit(embed=embed, view=None)
+        state.music_msg = await state.music_msg.edit(embed=embed, view=None)
 
         await player.disconnect(force=True)
         del self.voice_states[guild.id]
