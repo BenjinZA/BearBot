@@ -173,11 +173,6 @@ class Music(commands.Cog):
         await state.set_music_msg(payload.track, payload.player)
 
     @commands.Cog.listener()
-    async def on_wavelink_track_end(self, payload):
-        state = self.get_voice_state(payload.player.guild)
-        state.play_next_song.set()
-
-    @commands.Cog.listener()
     async def on_wavelink_inactive_player(self, player: wavelink.Player):
         await self.player_disconnect(player.guild)
 
