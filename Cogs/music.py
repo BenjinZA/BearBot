@@ -139,7 +139,9 @@ class VoiceState:
                 node = wavelink.Pool.get_node()
                 player = node.get_player(self.guild.id)
 
-                if player.playing:
+                if player is None:
+                    counter = 0
+                elif player.playing:
                     counter = 0
                 else:
                     counter += 1
