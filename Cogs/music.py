@@ -362,7 +362,7 @@ class Music(commands.Cog):
             await ctx.send('Please specify a correct number of songs to skip', delete_after=5)
             return
 
-        number_skip = min(number_skip, await self.voice_states[ctx.guild.id].songs.qsize(player))
+        number_skip = min(number_skip, len(player.queue))
 
         if number_skip == 0 and self.voice_states[ctx.guild.id].voice_channel is not None:
             number_skip = 1
