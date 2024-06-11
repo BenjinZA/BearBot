@@ -13,7 +13,7 @@ if not discord.opus.is_loaded() and platform.system() == 'linux':
 class VolumeButtons(discord.ui.View):
 
     def __init__(self, player):
-        super().__init__()
+        super().__init__(timeout=None)
         self.player = player
 
     @discord.ui.button(label='10', style=discord.ButtonStyle.grey)
@@ -70,7 +70,7 @@ class VolumeButtons(discord.ui.View):
 class MusicButtons(discord.ui.View):
 
     def __init__(self, player, music):
-        super().__init__()
+        super().__init__(timeout=None)
         self.player = player
         self.music = music
 
