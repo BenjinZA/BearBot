@@ -45,6 +45,10 @@ class Dota(commands.Cog):
                     patch_user = self.bot.get_user(patch_user_id)
                     await patch_user.send(f'A new Dota 2 patch has been released ({patch_number})')
 
+    @commands.command(hidden=True)
+    async def checkloop(self, ctx: commands.Context) -> None:
+        await ctx.send(str(self.check_dota_patch.is_running()))
+
     @commands.hybrid_command(brief='Register to receive Dota 2 patch notification DMs')
     async def register(self, ctx: commands.Context) -> None:
         if ctx.author.id in self.patch_users:
