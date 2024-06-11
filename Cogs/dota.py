@@ -30,19 +30,20 @@ class Dota(commands.Cog):
 
         latest_timestamp = 0
         patch_number = ''
-        for patch in patch_data['patches']:
-            if patch['patch_timestamp'] > latest_timestamp:
-                latest_timestamp = int(patch['patch_timestamp'])
-                patch_number = patch['patch_number']
+        if patch_data['success']:
+            for patch in patch_data['patches']:
+                if patch['patch_timestamp'] > latest_timestamp:
+                    latest_timestamp = int(patch['patch_timestamp'])
+                    patch_number = patch['patch_number']
 
-        if self.latest_timestamp == 0:
-            self.latest_timestamp = latest_timestamp
+            if self.latest_timestamp == 0:
+                self.latest_timestamp = latest_timestamp
 
-        if self.latest_timestamp < latest_timestamp:
-            self.latest_timestamp = latest_timestamp
-            for patch_user_id in self.patch_users:
-                patch_user = self.bot.get_user(patch_user_id)
-                await patch_user.send(f'A new Dota 2 patch has been released ({patch_number})')
+            if self.latest_timestamp < latest_timestamp:
+                self.latest_timestamp = latest_timestamp
+                for patch_user_id in self.patch_users:
+                    patch_user = self.bot.get_user(patch_user_id)
+                    await patch_user.send(f'A new Dota 2 patch has been released ({patch_number})')
 
     @commands.hybrid_command(brief='Register to receive Dota 2 patch notification DMs')
     async def register(self, ctx: commands.Context) -> None:
