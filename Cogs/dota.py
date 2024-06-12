@@ -29,8 +29,11 @@ class Dota(commands.Cog):
         patch_data = await checkpatch.get_patches()
 
         latest_timestamp = 0
-        patch_number = ''
-        if patch_data['success']:
+
+        if not patch_data:
+            pass
+
+        elif 'patches' in patch_data:
             for patch in patch_data['patches']:
                 if patch['patch_timestamp'] > latest_timestamp:
                     latest_timestamp = int(patch['patch_timestamp'])
