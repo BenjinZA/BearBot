@@ -124,31 +124,6 @@ class VoiceState:
         else:
             self.music_msg = await self.music_msg.edit(embed=embed_music_msg)
 
-    async def start_audio_player(self):
-        self.disconnect_if_not_playing.start()
-
-    async def stop_audio_player(self):
-        self.disconnect_if_not_playing.cancel()
-
-    @tasks.loop()
-    async def disconnect_if_not_playing(self):
-        counter = 0
-        while True:
-            await asyncio.sleep(60)
-            if self.voice_channel:
-                node = wavelink.Pool.get_node()
-                player = node.get_player(self.guild.id)
-
-                if player is None:
-                    counter = 0
-                elif player.playing:
-                    counter = 0
-                else:
-                    counter += 1
-
-                if counter >= 5:
-                    await self.music.player_disconnect(self.guild)
-
 
 class Music(commands.Cog):
 
@@ -201,12 +176,12 @@ class Music(commands.Cog):
 
     async def voice_connect(self, ctx):
         await ctx.author.voice.channel.connect(cls=wavelink.Player)
-        await self.voice_states[ctx.guild.id].start_audio_player()
         self.voice_states[ctx.guild.id].voice_channel = ctx.author.voice.channel
         await ctx.guild.change_voice_state(channel=ctx.author.voice.channel, self_mute=False, self_deaf=True)
         node = wavelink.Pool.get_node()
         player = node.get_player(ctx.guild.id)
         player.autoplay = wavelink.AutoPlayMode.partial
+        player.inactive_timeout = 1200
 
     @commands.hybrid_command(brief='View the current songs in the playlist. By default will display 10 songs.')
     async def queue(self, ctx: commands.Context, number: int = 10) -> None:
