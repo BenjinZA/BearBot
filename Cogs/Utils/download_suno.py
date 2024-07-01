@@ -18,7 +18,7 @@ def download_suno_song(url):
     song_id = url.replace('https://suno.com/song/', '')
 
     abs_path = os.path.abspath('suno_cache')
-    song_path = abs_path + '\\SunoMusic-' + song_id + '.mp3'
+    song_path = abs_path.replace('\\', '/') + '/SunoMusic-' + song_id + '.mp3'
 
     if Path(song_path).is_file():
         return song_path
