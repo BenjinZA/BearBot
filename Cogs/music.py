@@ -1,10 +1,12 @@
 import asyncio
+from concurrent.futures import ThreadPoolExecutor
 import wavelink
 import discord
-from discord.ext import commands, tasks
+from discord.ext import commands
 import ctypes.util
 import platform
 import json
+from Cogs.Utils import download_suno
 
 if not discord.opus.is_loaded() and platform.system() == 'linux':
     discord.opus.load_opus(ctypes.util.find_library('opus'))
@@ -117,7 +119,7 @@ class VoiceState:
         self.voice_channel = None
 
     async def set_music_msg(self, song, player):
-        embed_music_msg = discord.Embed(title='BearBot Music Player', description=f'Now playing: [{song.title}]({song.uri})')
+        embed_music_msg = discord.Embed(title='BearBot Music Player', description=f'Now playing: {song.embed_title}')
         embed_music_msg.set_image(url=song.artwork)
         if self.music_msg is None:
             self.music_msg = await self.music_channel.send(embed=embed_music_msg, view=MusicButtons(player, self.music))
@@ -147,7 +149,7 @@ class Music(commands.Cog):
     @commands.Cog.listener()
     async def on_wavelink_track_start(self, payload):
         state = self.voice_states.get(payload.player.guild.id)
-        await state.set_music_msg(payload.track, payload.player)
+        await state.set_music_msg(payload.original, payload.player)
 
     @commands.Cog.listener()
     async def on_wavelink_inactive_player(self, player: wavelink.Player):
@@ -208,7 +210,14 @@ class Music(commands.Cog):
         player = node.get_player(ctx.guild.id)
 
         try:
-            tracks = await wavelink.Playable.search(link, source=wavelink.TrackSource.YouTube)
+            if 'https://suno.com/song/' in link:
+                loop = asyncio.get_event_loop()
+                suno_path = await loop.run_in_executor(ThreadPoolExecutor(), download_suno.download_suno_song, link)
+                tracks = await wavelink.Pool.fetch_tracks(suno_path)
+                local_file = True
+            else:
+                tracks = await wavelink.Playable.search(link, source=wavelink.TrackSource.YouTube)
+                local_file = False
 
             if not tracks:
                 await ctx.send('Could not find any songs with that query', delete_after=5)
@@ -220,6 +229,10 @@ class Music(commands.Cog):
                 await ctx.send(f'Enqueued playlist {tracks.name} with {added} tracks', delete_after=5)
             else:
                 track = tracks[0]
+                if local_file:
+                    track.embed_title = 'Suno song'
+                else:
+                    track.embed_title = f'[{track.title}]({track.uri})'
                 await player.queue.put_wait(track)
                 await ctx.send('Enqueued song %s' % track.title, delete_after=5)
 
