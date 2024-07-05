@@ -120,7 +120,7 @@ class VoiceState:
 
     async def set_music_msg(self, song, player):
         embed_music_msg = discord.Embed(title='BearBot Music Player', description=f'Now playing: {song.embed_title}')
-        embed_music_msg.set_image(url=song.artwork)
+        embed_music_msg.set_image(url=song.embed_image)
         if self.music_msg is None:
             self.music_msg = await self.music_channel.send(embed=embed_music_msg, view=MusicButtons(player, self.music))
         else:
@@ -209,15 +209,17 @@ class Music(commands.Cog):
         node = wavelink.Pool.get_node()
         player = node.get_player(ctx.guild.id)
 
+        suno_song = False
         try:
             if 'https://suno.com/song/' in link:
                 loop = asyncio.get_event_loop()
-                suno_path = await loop.run_in_executor(ThreadPoolExecutor(), download_suno.download_suno_song, link)
-                tracks = await wavelink.Pool.fetch_tracks(suno_path)
-                local_file = True
-            else:
-                tracks = await wavelink.Playable.search(link, source=wavelink.TrackSource.YouTube)
-                local_file = False
+                suno_url, suno_image, suno_title = await loop.run_in_executor(ThreadPoolExecutor(), download_suno.get_suno_song, link)
+                if suno_url:
+                    original_link = link
+                    link = suno_url
+                    suno_song = True
+
+            tracks = await wavelink.Playable.search(link, source=wavelink.TrackSource.YouTube)
 
             if not tracks:
                 await ctx.send('Could not find any songs with that query', delete_after=5)
@@ -229,10 +231,12 @@ class Music(commands.Cog):
                 await ctx.send(f'Enqueued playlist {tracks.name} with {added} tracks', delete_after=5)
             else:
                 track = tracks[0]
-                if local_file:
-                    track.embed_title = 'Suno song'
+                if suno_song:
+                    track.embed_title = f'[{suno_title}]({original_link})'
+                    track.embed_image = suno_image
                 else:
                     track.embed_title = f'[{track.title}]({track.uri})'
+                    track.embed_image = track.artwork
                 await player.queue.put_wait(track)
                 await ctx.send('Enqueued song %s' % track.title, delete_after=5)
 

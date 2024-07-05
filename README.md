@@ -11,6 +11,7 @@ Python dependencies:
 - [Pillow](https://github.com/python-pillow/Pillow)
 - [aiohttp](https://github.com/aio-libs/aiohttp)
 - [wordcloud](https://github.com/amueller/word_cloud)
+- [SunoAI](https://github.com/Malith-Rukshan/Suno-API)
 
 Requires a [Lavalink](https://github.com/lavalink-devs/Lavalink) server for audio to work.
 When setting dev to false (see below), code will attempt to start Lavalink by itself.
@@ -29,5 +30,6 @@ If you wish to run this, you will need the following:
   'reddit_id'         -> client_id of reddit account
   'reddit_secret'     -> client_secret of reddit account
   'reddit_agent'      -> user_agent of reddit account
+  'suno_cookie'       -> Cookie from suno.com, needed for SunoAI
    ```
 This bot was coded as a learning project. As such, some of the code is very old and messy.
