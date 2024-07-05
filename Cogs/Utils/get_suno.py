@@ -1,7 +1,5 @@
 from suno import Suno, ModelVersions
-from pathlib import Path
 import json
-import os
 
 with open('bot_info.json', 'r') as file:
     bot_info = json.load(file)

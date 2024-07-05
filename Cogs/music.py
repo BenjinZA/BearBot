@@ -6,7 +6,7 @@ from discord.ext import commands
 import ctypes.util
 import platform
 import json
-from Cogs.Utils import download_suno
+from Cogs.Utils import get_suno
 
 if not discord.opus.is_loaded() and platform.system() == 'linux':
     discord.opus.load_opus(ctypes.util.find_library('opus'))
@@ -213,7 +213,7 @@ class Music(commands.Cog):
         try:
             if 'https://suno.com/song/' in link:
                 loop = asyncio.get_event_loop()
-                suno_url, suno_image, suno_title = await loop.run_in_executor(ThreadPoolExecutor(), download_suno.get_suno_song, link)
+                suno_url, suno_image, suno_title = await loop.run_in_executor(ThreadPoolExecutor(), get_suno.get_suno_song, link)
                 if suno_url:
                     original_link = link
                     link = suno_url
