@@ -232,13 +232,15 @@ class Music(commands.Cog):
             else:
                 track = tracks[0]
                 if suno_song:
+                    title = suno_title
                     track.embed_title = f'[{suno_title}]({original_link})'
                     track.embed_image = suno_image
                 else:
+                    title = track.title
                     track.embed_title = f'[{track.title}]({track.uri})'
                     track.embed_image = track.artwork
                 await player.queue.put_wait(track)
-                await ctx.send('Enqueued song %s' % track.title, delete_after=5)
+                await ctx.send(f'Enqueued song {title}', delete_after=5)
 
             if not player.playing:
                 await player.play(player.queue.get(), volume=state.saved_volume)
