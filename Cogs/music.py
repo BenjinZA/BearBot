@@ -214,7 +214,10 @@ class Music(commands.Cog):
             if 'https://suno.com/song/' in link:
                 loop = asyncio.get_event_loop()
                 suno_url, suno_image, suno_title = await loop.run_in_executor(ThreadPoolExecutor(), get_suno.get_suno_song, link)
-                if suno_url:
+                if suno_url == 'update cookie':
+                    await ctx.send('Suno cookie is out of date, tell bot creator')
+                    return
+                elif suno_url:
                     original_link = link
                     link = suno_url
                     suno_song = True
