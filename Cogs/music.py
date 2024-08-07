@@ -285,26 +285,30 @@ class Music(commands.Cog):
 
         await ctx.message.delete()
 
-    async def check_node_and_voice(self, ctx):
-        if ctx.channel.name != 'music':
-            await ctx.send('Use #music channel for music commands', delete_after=5)
-            raise commands.CommandError('Author not using #music channel')
+    async def check_node_and_voice(self, ctx=None):
+        if ctx:
+            if ctx.channel.name != 'music':
+                await ctx.send('Use #music channel for music commands', delete_after=5)
+                raise commands.CommandError('Author not using #music channel')
 
         check_node = False
+        check_node_msg = None
         counter = 0
         try:
             check_node = wavelink.Pool.get_node()
         except wavelink.exceptions.InvalidNodeException as e:
-            check_node_msg = await ctx.send('Music process not connected yet. ' +
-                                            'This could be caused by the bot restarting.\n\n' +
-                                            'The bot will attempt to connect the music process. ' +
-                                            'Sit tight, your request is in the queue. ' +
-                                            'This message will update once connected.'
-                                            )
+            if ctx:
+                check_node_msg = await ctx.send('Music process not connected yet. ' +
+                                                'This could be caused by the bot restarting.\n\n' +
+                                                'The bot will attempt to connect the music process. ' +
+                                                'Sit tight, your request is in the queue. ' +
+                                                'This message will update once connected.'
+                                                )
 
         while not check_node:
             if counter >= 10:
-                await check_node_msg.edit(content=f'Connection attempt failed after {counter} times')
+                if check_node_msg:
+                    await check_node_msg.edit(content=f'Connection attempt failed after {counter} times')
                 break
 
             await asyncio.sleep(5)
@@ -313,7 +317,8 @@ class Music(commands.Cog):
             except wavelink.exceptions.InvalidNodeException as e:
                 counter += 1
             else:
-                await check_node_msg.edit(content='Music process has been connected!')
+                if check_node_msg:
+                    await check_node_msg.edit(content='Music process has been connected!')
 
     @play.before_invoke
     async def ensure_voice(self, ctx):
@@ -428,6 +433,8 @@ class Music(commands.Cog):
             stop_lavalink(self.lavalink)
 
             self.lavalink = start_lavalink()
+            await asyncio.sleep(3)
+            await self.check_node_and_voice()
 
             await msg.edit(content='Update of backend plugins completed')
         else:
