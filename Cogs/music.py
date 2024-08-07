@@ -6,10 +6,37 @@ from discord.ext import commands
 import ctypes.util
 import platform
 import json
-from Cogs.Utils import get_suno
+from Cogs.Utils import get_suno, lavalink_updater
+import subprocess
+from pathlib import Path
 
 if not discord.opus.is_loaded() and platform.system() == 'linux':
     discord.opus.load_opus(ctypes.util.find_library('opus'))
+
+
+def start_lavalink():
+    lavalink_path = Path(__file__).parents[1] / 'Lavalink'
+
+    if platform.system() == 'Linux':
+        lavalink = subprocess.Popen(['sudo', 'java', '-jar', 'Lavalink.jar'],
+                                    cwd=lavalink_path,
+                                    close_fds=True
+                                    )
+
+    elif platform.system() == 'Windows':
+        lavalink = subprocess.Popen('java -jar Lavalink.jar',
+                                    cwd=lavalink_path,
+                                    close_fds=True
+                                    )
+
+    return lavalink
+
+
+def stop_lavalink(lavalink):
+    if platform.system() == 'Linux':
+        lavalink.terminate()
+    elif platform.system() == 'Windows':
+        subprocess.call(['taskkill', '/F', '/T', '/PID', str(lavalink.pid)])
 
 
 class VolumeButtons(discord.ui.View):
@@ -134,6 +161,8 @@ class Music(commands.Cog):
         self.voice_states = dict()
 
         self.bot.loop.create_task(self.start_nodes())
+
+        self.lavalink = start_lavalink()
 
     async def start_nodes(self):
         await self.bot.wait_until_ready()
@@ -385,6 +414,24 @@ class Music(commands.Cog):
     @skip.before_invoke
     async def ensure_music_channel(self, ctx):
         await self.check_node_and_voice(ctx)
+
+    @commands.hybrid_command(brief='Update the backend plugins used by music player')
+    async def update_music_backend(self, ctx: commands.Context) -> None:
+        msg = await ctx.send('Attempting to update backend plugins...')
+        update_status = await lavalink_updater.download_lavalink()
+
+        if update_status:
+            await msg.edit(content='Updates complete, restarting backend...')
+            for vc in self.bot.voice_clients:
+                await vc.disconnect(force=True)
+
+            stop_lavalink(self.lavalink)
+
+            self.lavalink = start_lavalink()
+
+            await msg.edit(content='Update of backend plugins completed')
+        else:
+            await msg.edit(content='Update of backend plugins was not successful. Contact bot developer')
 
 
 async def setup(bot):

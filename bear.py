@@ -1,12 +1,11 @@
-import subprocess
 import discord
 from discord.ext import commands
+from Cogs.music import stop_lavalink
 import os
 import pickle
 import time
 import json
 import logging
-import platform
 
 
 def discord_client():
@@ -21,11 +20,6 @@ def discord_client():
     else:
         bot_prefix_str = '?'
         bot_prefix = commands.when_mentioned_or('?')
-        if platform.system() == 'Linux':
-            lavalink = subprocess.Popen(['sudo', 'java', '-jar', 'Lavalink.jar'],
-                                        cwd=bot_info['lavalink'],
-                                        close_fds=True
-                                        )
 
     intents = discord.Intents.default()
 
@@ -97,11 +91,10 @@ def discord_client():
         except:
             pass
 
-        if not dev:
-            try:
-                lavalink.terminate()
-            except NameError:
-                pass
+        try:
+            stop_lavalink(client.get_cog('Music').lavalink)
+        except NameError:
+            pass
 
         await ctx.send('Attempting to restart Bear bot')
         await client.close()

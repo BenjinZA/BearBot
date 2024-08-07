@@ -14,8 +14,8 @@ Python dependencies:
 - [SunoAI](https://github.com/Malith-Rukshan/Suno-API)
 
 Requires a [Lavalink](https://github.com/lavalink-devs/Lavalink) server for audio to work.
-When setting dev to false (see below), code will attempt to start Lavalink by itself.
-This is configured to run on Linux and will need to be changed if you plan to run this on another OS.
+In the root directory, create a Lavalink folder that contains the Lavalink.jar
+and application.yml (optional). The code will automatically start the Lavalink server.
 
 If you wish to run this, you will need the following:
 - Discord bot token
@@ -24,7 +24,6 @@ If you wish to run this, you will need the following:
   ```
   'dev'               -> True/False for development
   'token'             -> Discord bot token string
-  'lavalink'          -> location of Lavalink jar
   'lavalink_ip'       -> IP of Lavalink server
   'lavalink_password' -> password of Lavalink server
   'reddit_id'         -> client_id of reddit account
