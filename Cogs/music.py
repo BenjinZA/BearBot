@@ -6,7 +6,7 @@ from discord.ext import commands
 import ctypes.util
 import platform
 import json
-from Cogs.Utils import get_suno, lavalink_updater
+from Cogs.Utils import lavalink_updater
 import subprocess
 from pathlib import Path
 
@@ -241,15 +241,10 @@ class Music(commands.Cog):
         suno_song = False
         try:
             if 'https://suno.com/song/' in link:
-                loop = asyncio.get_event_loop()
-                suno_url, suno_image, suno_title = await loop.run_in_executor(ThreadPoolExecutor(), get_suno.get_suno_song, link)
-                if suno_url == 'update cookie':
-                    await ctx.send('Suno cookie is out of date, tell bot creator')
-                    return
-                elif suno_url:
-                    original_link = link
-                    link = suno_url
-                    suno_song = True
+                original_link = link
+                link = link.replace('suno.com/song', 'cdn1.suno.ai') + '.mp3'
+                suno_image = link.replace('cdn1.suno.ai/', 'cdn2.suno.ai/image_')[:-3] + 'jpeg'
+                suno_song = True
 
             tracks = await wavelink.Playable.search(link, source=wavelink.TrackSource.YouTube)
 
@@ -264,12 +259,12 @@ class Music(commands.Cog):
             else:
                 track = tracks[0]
                 if suno_song:
-                    title = suno_title
-                    track.embed_title = f'[{suno_title}]({original_link})'
+                    title = 'A song generated at Suno'
+                    track.embed_title = f'[{title}]({original_link})'
                     track.embed_image = suno_image
                 else:
                     title = track.title
-                    track.embed_title = f'[{track.title}]({track.uri})'
+                    track.embed_title = f'[{title}]({track.uri})'
                     track.embed_image = track.artwork
                 await player.queue.put_wait(track)
                 await ctx.send(f'Enqueued song {title}', delete_after=5)
