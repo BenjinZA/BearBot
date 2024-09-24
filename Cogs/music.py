@@ -1,5 +1,4 @@
 import asyncio
-from concurrent.futures import ThreadPoolExecutor
 import wavelink
 import discord
 from discord.ext import commands
@@ -470,6 +469,9 @@ class Music(commands.Cog):
             await msg.edit(content='Updates complete, restarting backend...')
 
             stop_lavalink(self.lavalink)
+            while self.lavalink.poll() is None:
+                print(self.lavalink.poll())
+                await asyncio.sleep(5)
 
             self.lavalink = start_lavalink()
             await asyncio.sleep(3)
