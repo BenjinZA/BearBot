@@ -459,7 +459,6 @@ class Music(commands.Cog):
 
         msg = await ctx.send('Attempting to update backend plugins...')
 
-
         for vc in self.bot.voice_clients:
             await vc.disconnect(force=True)
 
@@ -469,12 +468,11 @@ class Music(commands.Cog):
             await msg.edit(content='Updates complete, restarting backend...')
 
             stop_lavalink(self.lavalink)
-            while self.lavalink.poll() is None:
-                print(self.lavalink.poll())
-                await asyncio.sleep(5)
+            await wavelink.Pool.close()
 
             self.lavalink = start_lavalink()
             await asyncio.sleep(3)
+            await self.start_nodes()
 
             await self.check_node_and_voice()
 
