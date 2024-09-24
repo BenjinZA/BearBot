@@ -176,6 +176,7 @@ class Music(commands.Cog):
         self.lavalink = start_lavalink()
 
         self.refuse_commands = False
+        self.update_in_progress = False
 
     async def start_nodes(self):
         await self.bot.wait_until_ready()
@@ -293,15 +294,20 @@ class Music(commands.Cog):
 
         await ctx.message.delete()
 
-    async def check_node_and_voice(self, ctx=None):
+    async def check_refuse_commands(self, ctx):
         refuse_commands_msg = None
         while self.refuse_commands:
             if not refuse_commands_msg:
                 if ctx:
-                    refuse_commands_msg = await ctx.send('Backend is currently being updated and music commands are not being processed')
+                    refuse_commands_msg = await ctx.send('Backend is currently being updated ' +
+                                                         'and music commands are not being processed. \n\n' +
+                                                         'Play commands are saved and will be processed ' +
+                                                         'once backend is online again.')
             await asyncio.sleep(5)
         if refuse_commands_msg:
             await refuse_commands_msg.delete()
+
+    async def check_node_and_voice(self, ctx=None):
 
         if ctx:
             if ctx.channel.name != 'music':
@@ -342,6 +348,7 @@ class Music(commands.Cog):
 
     @play.before_invoke
     async def ensure_voice(self, ctx):
+        await self.check_refuse_commands(ctx)
         await self.check_node_and_voice(ctx)
         state = self.get_voice_state(ctx.guild)
         node = wavelink.Pool.get_node()
@@ -438,13 +445,21 @@ class Music(commands.Cog):
     @resume.before_invoke
     @skip.before_invoke
     async def ensure_music_channel(self, ctx):
+        await self.check_refuse_commands(ctx)
         await self.check_node_and_voice(ctx)
 
     @commands.hybrid_command(brief='Update the backend plugins used by music player')
     async def update_music_backend(self, ctx: commands.Context) -> None:
+        if self.update_in_progress:
+            await ctx.send('Music backend update is already in progress. Please wait for it to finish', delete_after=5)
+            await ctx.message.delete()
+            return
+
+        self.update_in_progress = True
+        self.refuse_commands = True
+
         msg = await ctx.send('Attempting to update backend plugins...')
 
-        self.refuse_commands = True
 
         for vc in self.bot.voice_clients:
             await vc.disconnect(force=True)
@@ -459,7 +474,6 @@ class Music(commands.Cog):
             self.lavalink = start_lavalink()
             await asyncio.sleep(3)
 
-            self.refuse_commands = False
             await self.check_node_and_voice()
 
             await msg.edit(content='Update of backend plugins completed')
@@ -467,6 +481,7 @@ class Music(commands.Cog):
             await msg.edit(content='Update of backend plugins was not successful. Contact bot developer')
 
         self.refuse_commands = False
+        self.update_in_progress = False
 
         await asyncio.sleep(5)
         await ctx.message.delete()
