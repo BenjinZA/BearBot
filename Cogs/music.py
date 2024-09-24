@@ -429,12 +429,14 @@ class Music(commands.Cog):
     @commands.hybrid_command(brief='Update the backend plugins used by music player')
     async def update_music_backend(self, ctx: commands.Context) -> None:
         msg = await ctx.send('Attempting to update backend plugins...')
+
+        for vc in self.bot.voice_clients:
+            await vc.disconnect(force=True)
+
         update_status = await lavalink_updater.download_lavalink()
 
         if update_status:
             await msg.edit(content='Updates complete, restarting backend...')
-            for vc in self.bot.voice_clients:
-                await vc.disconnect(force=True)
 
             stop_lavalink(self.lavalink)
 
