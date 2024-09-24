@@ -175,6 +175,8 @@ class Music(commands.Cog):
 
         self.lavalink = start_lavalink()
 
+        self.refuse_commands = False
+
     async def start_nodes(self):
         await self.bot.wait_until_ready()
         try:
@@ -292,24 +294,36 @@ class Music(commands.Cog):
         await ctx.message.delete()
 
     async def check_node_and_voice(self, ctx=None):
+        refuse_commands_msg = None
+        while self.refuse_commands:
+            if not refuse_commands_msg:
+                if ctx:
+                    refuse_commands_msg = await ctx.send('Backend is currently being updated and music commands are not being processed')
+            await asyncio.sleep(5)
+        if refuse_commands_msg:
+            await refuse_commands_msg.delete()
+
         if ctx:
             if ctx.channel.name != 'music':
                 await ctx.send('Use #music channel for music commands', delete_after=5)
                 raise commands.CommandError('Author not using #music channel')
 
-        check_node = False
         check_node_msg = None
+        check_node = False
         counter = 0
         try:
             check_node = wavelink.Pool.get_node()
         except wavelink.exceptions.InvalidNodeException as e:
             if ctx:
-                check_node_msg = await ctx.send('Music process not connected yet. ' +
-                                                'This could be caused by the bot restarting.\n\n' +
-                                                'The bot will attempt to connect the music process. ' +
-                                                'Sit tight, your request is in the queue. ' +
-                                                'This message will update once connected.'
-                                                )
+                update_msg = 'Music process not connected yet. ' + \
+                             'This could be caused by the bot restarting.\n\n' + \
+                             'The bot will attempt to connect the music process. ' + \
+                             'Sit tight, your request is in the queue. ' + \
+                             'This message will update once connected.'
+                if check_node_msg:
+                    await check_node_msg.edit(content=update_msg)
+                else:
+                    check_node_msg = await ctx.send(update_msg)
 
         while not check_node:
             if counter >= 10:
@@ -430,6 +444,8 @@ class Music(commands.Cog):
     async def update_music_backend(self, ctx: commands.Context) -> None:
         msg = await ctx.send('Attempting to update backend plugins...')
 
+        self.refuse_commands = True
+
         for vc in self.bot.voice_clients:
             await vc.disconnect(force=True)
 
@@ -442,11 +458,19 @@ class Music(commands.Cog):
 
             self.lavalink = start_lavalink()
             await asyncio.sleep(3)
+
+            self.refuse_commands = False
             await self.check_node_and_voice()
 
             await msg.edit(content='Update of backend plugins completed')
         else:
             await msg.edit(content='Update of backend plugins was not successful. Contact bot developer')
+
+        self.refuse_commands = False
+
+        await asyncio.sleep(5)
+        await ctx.message.delete()
+        await msg.delete()
 
 
 async def setup(bot):
