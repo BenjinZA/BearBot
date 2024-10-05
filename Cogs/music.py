@@ -170,15 +170,12 @@ class Music(commands.Cog):
         self.bot = bot
         self.voice_states = dict()
 
-        self.bot.loop.create_task(self.start_nodes())
-
         self.lavalink = start_lavalink()
 
         self.refuse_commands = False
         self.update_in_progress = False
 
     async def start_nodes(self):
-        await self.bot.wait_until_ready()
         try:
             check_node = wavelink.Pool.get_node()
         except wavelink.exceptions.InvalidNodeException as e:
@@ -187,6 +184,9 @@ class Music(commands.Cog):
 
             node: wavelink.Node = wavelink.Node(uri=bot_info['lavalink_ip'], password=bot_info['lavalink_password'])
             await wavelink.Pool.connect(client=self.bot, nodes=[node])
+
+    async def cog_load(self) -> None:
+        await self.start_nodes()
 
     @commands.Cog.listener()
     async def on_wavelink_track_start(self, payload):
