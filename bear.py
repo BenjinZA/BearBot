@@ -8,6 +8,32 @@ import json
 import logging
 
 
+class Bear(commands.Bot):
+
+    def __init__(self, *,
+                 command_prefix: commands.when_mentioned_or,
+                 case_insensitive: bool,
+                 intents: discord.Intents,
+                 help_command
+                 ):
+        super().__init__(command_prefix=command_prefix,
+                         case_insensitive=case_insensitive,
+                         intents=intents,
+                         help_command=help_command
+                         )
+
+    async def setup_hook(self):
+        await self.load_extension('Cogs.dota')
+        await self.load_extension('Cogs.fun')
+        await self.load_extension('Cogs.music')
+        await self.load_extension('Cogs.giveaway')
+
+    if os.path.isfile('banned_users.txt'):
+        banned_users = pickle.load(open('banned_users.txt', 'rb'))
+    else:
+        banned_users = []
+
+
 def discord_client():
     with open('bot_info.json', 'r') as file:
         bot_info = json.load(file)
@@ -32,11 +58,11 @@ def discord_client():
     intents.dm_messages = True
     intents.guilds = True
 
-    client = commands.Bot(command_prefix=bot_prefix,
-                          case_insensitive=True,
-                          intents=intents,
-                          help_command=commands.DefaultHelpCommand(dm_help=True)
-                          )
+    client = Bear(command_prefix=bot_prefix,
+                  case_insensitive=True,
+                  intents=intents,
+                  help_command=commands.DefaultHelpCommand(dm_help=True)
+                  )
 
     @client.event
     async def setup_hook():
