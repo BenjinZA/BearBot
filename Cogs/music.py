@@ -460,7 +460,7 @@ class Music(commands.Cog):
         msg = await ctx.send('Attempting to update backend plugins...')
 
         for vc in self.bot.voice_clients:
-            await vc.disconnect(force=True)
+            await self.player_disconnect(vc.guild)
 
         update_status = await lavalink_updater.download_lavalink()
 
