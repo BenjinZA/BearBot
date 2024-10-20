@@ -6,6 +6,7 @@ import pickle
 import time
 import json
 import logging
+import wavelink
 
 
 class Bear(commands.Bot):
@@ -113,6 +114,11 @@ def discord_client():
         try:
             stop_lavalink(client.get_cog('Music').lavalink)
         except NameError:
+            pass
+
+        try:
+            await wavelink.Pool.close()
+        except:
             pass
 
         await ctx.send('Attempting to restart Bear bot')
