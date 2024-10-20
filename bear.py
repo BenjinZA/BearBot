@@ -64,13 +64,6 @@ def discord_client():
                   help_command=commands.DefaultHelpCommand(dm_help=True)
                   )
 
-    @client.event
-    async def setup_hook():
-        await client.load_extension('Cogs.dota')
-        await client.load_extension('Cogs.fun')
-        await client.load_extension('Cogs.music')
-        await client.load_extension('Cogs.giveaway')
-
     if os.path.isfile('banned_users.txt'):
         banned_users = pickle.load(open('banned_users.txt', 'rb'))
     else:
