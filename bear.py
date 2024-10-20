@@ -120,9 +120,7 @@ def discord_client():
 
     @client.command(brief='Sync commands')
     async def sync(ctx):
-        for guild in client.guilds:
-            client.tree.copy_global_to(guild=guild)
-            await ctx.bot.tree.sync(guild=guild)
+        await ctx.bot.tree.sync()
 
     @client.event
     async def on_message(message):
