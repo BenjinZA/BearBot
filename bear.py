@@ -7,6 +7,7 @@ import time
 import json
 import logging
 import wavelink
+import platform
 
 
 class Bear(commands.Bot):
@@ -101,6 +102,12 @@ def discord_client():
             user_info = client.get_user(ban_user)
             pickle.dump(banned_users, open('banned_users.txt', 'wb'))
             await ctx.send('User %s has been unbanned from using commands' % user_info.name)
+
+    @client.hybrid_command(brief='Reboot the entire Pi')
+    @commands.is_owner()
+    async def reboot(ctx: commands.Context) -> None:
+        if platform.system() == 'Linux':
+            os.system('sudo reboot')
 
     @client.hybrid_command(brief='Disconnect from voice channels and restart the bot')
     async def restart(ctx: commands.Context) -> None:
