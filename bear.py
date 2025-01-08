@@ -29,6 +29,7 @@ class Bear(commands.Bot):
         await self.load_extension('Cogs.fun')
         await self.load_extension('Cogs.music')
         await self.load_extension('Cogs.giveaway')
+        await self.load_extension('Cogs.bloodontheclocktower')
 
     if os.path.isfile('banned_users.txt'):
         banned_users = pickle.load(open('banned_users.txt', 'rb'))
