@@ -15,10 +15,10 @@ class SelectDawnChannel(discord.ui.ChannelSelect):
         self.guild_categories = guild_categories
 
     async def callback(self, interaction: discord.Interaction):
-        dawn_channel_id = int(interaction.data['values'][0])
+        dawn_channel_id = interaction.data['values'][0]
         dawn_channel_name = interaction.data['resolved']['channels'][dawn_channel_id]['name']
 
-        self.guild_configs[interaction.guild_id] = {'dawn': dawn_channel_id}
+        self.guild_configs[interaction.guild_id] = {'dawn': int(dawn_channel_id)}
 
         await interaction.response.edit_message(content=f'Dawn channel set as {dawn_channel_name}',
                                                 view=SelectNightGroupView(self.guild_configs, self.guild_categories)
