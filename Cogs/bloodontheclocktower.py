@@ -91,7 +91,7 @@ class BloodOnTheClocktower(commands.Cog):
         night_category = discord.utils.get(ctx.guild.categories, id=self.guild_configs[ctx.guild.id]['night'])
 
         for i in range(0, len(dawn_channel.members)):
-            await dawn_channel.members[i].move_to(night_category.channels[i])
+            await dawn_channel.members[0].move_to(night_category.channels[i])
 
     @commands.hybrid_command(brief='Wake players from sleep')
     async def dawn(self, ctx: commands.Context) -> None:
