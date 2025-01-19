@@ -156,8 +156,13 @@ class VoiceState:
         self.voice_channel = None
 
     async def set_music_msg(self, song, player):
-        embed_music_msg = discord.Embed(title='BearBot Music Player', description=f'Now playing: {song.embed_title}')
-        embed_music_msg.set_image(url=song.embed_image)
+        if hasattr(song, 'embed_title'):
+            embed_music_msg = discord.Embed(title='BearBot Music Player', description=f'Now playing: {song.embed_title}')
+            embed_music_msg.set_image(url=song.embed_image)
+        else:
+            embed_music_msg = discord.Embed(title='BearBot Music Player', description=f'Now playing: [{song.title}]({song.uri})')
+            embed_music_msg.set_image(url=song.artwork)
+
         if self.music_msg is None:
             self.music_msg = await self.music_channel.send(embed=embed_music_msg, view=MusicButtons(player, self))
         else:
