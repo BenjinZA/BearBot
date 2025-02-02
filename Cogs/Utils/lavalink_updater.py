@@ -33,7 +33,7 @@ async def download_lavalink():
 
                     for i in range(len(lavalink_config)):
                         if 'dev.lavalink.youtube:youtube-plugin' in lavalink_config[i]:
-                            lavalink_config[i] = lavalink_config[i].replace(lavalink_config[i][-7:-2], new_version)
+                            lavalink_config[i] = lavalink_config[i].replace(lavalink_config[i][55:-2], new_version)
 
                 with open(lavalink_path / 'application.yml', 'w') as file:
                     file.writelines(lavalink_config)
