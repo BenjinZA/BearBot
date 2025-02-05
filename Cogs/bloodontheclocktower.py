@@ -70,6 +70,7 @@ class BloodOnTheClocktower(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
+        self.night_players = {}
         if os.path.isfile('Cogs/Utils/botc/guild_config.txt'):
             self.guild_configs = pickle.load(open('Cogs/Utils/botc/guild_config.txt', 'rb'))
         else:
@@ -87,11 +88,13 @@ class BloodOnTheClocktower(commands.Cog):
             await ctx.send('No config for this server, use command `botc_setup`')
             return
 
-        dawn_channel = (ctx.guild.get_channel(self.guild_configs[ctx.guild.id]['dawn']) or await ctx.guild.fetch_channel(self.guild_configs[ctx.guild.id]['dawn']))
+        dawn_channel = await ctx.guild.fetch_channel(self.guild_configs[ctx.guild.id]['dawn'])
         night_category = discord.utils.get(ctx.guild.categories, id=self.guild_configs[ctx.guild.id]['night'])
 
-        for i in range(0, len(dawn_channel.members)):
-            await dawn_channel.members[0].move_to(night_category.channels[i])
+        self.night_players[ctx.guild.id] = dawn_channel.members
+
+        for i in range(0, len(self.night_players[ctx.guild.id])):
+            await self.night_players[ctx.guild.id][i].move_to(night_category.channels[i])
 
     @commands.hybrid_command(brief='Wake players from sleep')
     async def dawn(self, ctx: commands.Context) -> None:
@@ -100,11 +103,9 @@ class BloodOnTheClocktower(commands.Cog):
             return
 
         dawn_channel = (ctx.guild.get_channel(self.guild_configs[ctx.guild.id]['dawn']) or await ctx.guild.fetch_channel(self.guild_configs[ctx.guild.id]['dawn']))
-        night_category = discord.utils.get(ctx.guild.categories, id=self.guild_configs[ctx.guild.id]['night'])
 
-        for channel in night_category.channels:
-            for member in channel.members:
-                await member.move_to(dawn_channel)
+        for member in self.night_players[ctx.guild.id]:
+            await member.move_to(dawn_channel)
 
 
 async def setup(bot):
