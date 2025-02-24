@@ -8,6 +8,7 @@ import json
 from Cogs.Utils import lavalink_updater
 import subprocess
 from pathlib import Path
+import re
 
 if not discord.opus.is_loaded() and platform.system() == 'linux':
     discord.opus.load_opus(ctypes.util.find_library('opus'))
@@ -196,6 +197,8 @@ class Music(commands.Cog):
     @commands.Cog.listener()
     async def on_wavelink_track_start(self, payload):
         state = self.voice_states.get(payload.player.guild.id)
+        if payload.original.start_position > 0:
+            await payload.player.seek(payload.original.start_position)
         await state.set_music_msg(payload.original, payload.player)
 
     @commands.Cog.listener()
@@ -255,6 +258,7 @@ class Music(commands.Cog):
         state = self.get_voice_state(ctx.guild)
         node = wavelink.Pool.get_node()
         player = node.get_player(ctx.guild.id)
+        position = 0
 
         suno_song = False
         try:
@@ -263,6 +267,9 @@ class Music(commands.Cog):
                 link = link.replace('suno.com/song', 'cdn1.suno.ai') + '.mp3'
                 suno_image = link.replace('cdn1.suno.ai/', 'cdn2.suno.ai/image_')[:-3] + 'jpeg'
                 suno_song = True
+
+            if re.search('(t=)\d+(s)', link):
+                position = int(link[link.rfind('=')+1: -1]) * 1000
 
             tracks = await wavelink.Playable.search(link, source=wavelink.TrackSource.YouTube)
 
@@ -276,6 +283,8 @@ class Music(commands.Cog):
                 await ctx.send(f'Enqueued playlist {tracks.name} with {added} tracks', delete_after=5)
             else:
                 track = tracks[0]
+                track.start_position = position
+
                 if suno_song:
                     title = 'A song generated at Suno'
                     track.embed_title = f'[{title}]({original_link})'
