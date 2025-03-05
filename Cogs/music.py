@@ -197,7 +197,7 @@ class Music(commands.Cog):
     @commands.Cog.listener()
     async def on_wavelink_track_start(self, payload):
         state = self.voice_states.get(payload.player.guild.id)
-        if payload.original.start_position > 0:
+        if hasattr(payload, 'start_position'):
             await payload.player.seek(payload.original.start_position)
         await state.set_music_msg(payload.original, payload.player)
 
