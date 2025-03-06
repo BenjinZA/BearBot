@@ -501,6 +501,9 @@ class Music(commands.Cog):
         await ctx.message.delete()
         await msg.delete()
 
+    def cog_unload(self) -> None:
+        stop_lavalink(self.lavalink)
+
 
 async def setup(bot):
     await bot.add_cog(Music(bot))

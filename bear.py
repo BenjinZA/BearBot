@@ -24,12 +24,15 @@ class Bear(commands.Bot):
                          help_command=help_command
                          )
 
+        self.extension_list = ['Cogs.dota',
+                               'Cogs.fun',
+                               'Cogs.music',
+                               'Cogs.giveaway',
+                               'Cogs.bloodontheclocktower']
+
     async def setup_hook(self):
-        await self.load_extension('Cogs.dota')
-        await self.load_extension('Cogs.fun')
-        await self.load_extension('Cogs.music')
-        await self.load_extension('Cogs.giveaway')
-        await self.load_extension('Cogs.bloodontheclocktower')
+        for ext in self.extension_list:
+            await self.load_extension(ext)
 
     if os.path.isfile('banned_users.txt'):
         banned_users = pickle.load(open('banned_users.txt', 'rb'))
@@ -81,6 +84,12 @@ def discord_client():
     @commands.is_owner()
     async def ping(ctx: commands.Context) -> None:
         await ctx.send('Pong!')
+
+    @client.hybrid_command(brief='Reload all extensions')
+    @commands.is_owner()
+    async def reload(ctx: commands.Context) -> None:
+        for ext in client.extension_list:
+            await client.reload_extension(ext)
 
     @client.hybrid_command(brief='Ban user from using commands')
     @commands.has_any_role('Admin', 'Führer')
