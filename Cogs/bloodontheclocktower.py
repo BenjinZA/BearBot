@@ -107,6 +107,30 @@ class BloodOnTheClocktower(commands.Cog):
         for member in self.night_players[ctx.guild.id]:
             await member.move_to(dawn_channel)
 
+    @commands.Cog.listener()
+    async def on_scheduled_event_create(self, event):
+        if event.guild.id in self.guild_configs:
+            for member in event.guild.members:
+                for role in member.roles:
+                    if role.name == 'Player':
+                        await member.remove_roles(role)
+
+    @commands.Cog.listener()
+    async def on_scheduled_event_user_add(self, event, user):
+        if event.guild.id in self.guild_configs:
+            for role in event.guild.roles:
+                if role.name == 'Player':
+                    member = event.guild.get_member(user.id)
+                    await member.add_roles(role)
+
+    @commands.Cog.listener()
+    async def on_scheduled_event_user_remove(self, event, user):
+        if event.guild.id in self.guild_configs:
+            for role in event.guild.roles:
+                if role.name == 'Player':
+                    member = event.guild.get_member(user.id)
+                    await member.remove_roles(role)
+
 
 async def setup(bot):
     await bot.add_cog(BloodOnTheClocktower(bot))

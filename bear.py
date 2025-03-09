@@ -63,6 +63,7 @@ def discord_client():
     intents.emojis = True
     intents.dm_messages = True
     intents.guilds = True
+    intents.guild_scheduled_events = True
 
     client = Bear(command_prefix=bot_prefix,
                   case_insensitive=True,
