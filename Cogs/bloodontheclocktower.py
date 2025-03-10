@@ -109,11 +109,16 @@ class BloodOnTheClocktower(commands.Cog):
 
     @commands.Cog.listener()
     async def on_scheduled_event_create(self, event):
+        player_role = None
         if event.guild.id in self.guild_configs:
+            for role in event.guild.roles:
+                if role.name == 'Player':
+                    player_role = role
+                    break
+
+        if player_role:
             for member in event.guild.members:
-                for role in member.roles:
-                    if role.name == 'Player':
-                        await member.remove_roles(role)
+                await member.remove_roles(player_role)
 
     @commands.Cog.listener()
     async def on_scheduled_event_user_add(self, event, user):
@@ -122,6 +127,7 @@ class BloodOnTheClocktower(commands.Cog):
                 if role.name == 'Player':
                     member = event.guild.get_member(user.id)
                     await member.add_roles(role)
+                    break
 
     @commands.Cog.listener()
     async def on_scheduled_event_user_remove(self, event, user):
@@ -130,6 +136,7 @@ class BloodOnTheClocktower(commands.Cog):
                 if role.name == 'Player':
                     member = event.guild.get_member(user.id)
                     await member.remove_roles(role)
+                    break
 
 
 async def setup(bot):
