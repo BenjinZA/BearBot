@@ -118,7 +118,8 @@ class BloodOnTheClocktower(commands.Cog):
 
         if player_role:
             for member in event.guild.members:
-                await member.remove_roles(player_role)
+                if member not in await event.users:
+                    await member.remove_roles(player_role)
 
     @commands.Cog.listener()
     async def on_scheduled_event_user_add(self, event, user):
