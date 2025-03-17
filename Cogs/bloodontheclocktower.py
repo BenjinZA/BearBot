@@ -1,6 +1,7 @@
 import os
 import discord
 import pickle
+import asyncio
 from discord.ext import commands
 
 
@@ -118,7 +119,10 @@ class BloodOnTheClocktower(commands.Cog):
 
         if player_role:
             for member in event.guild.members:
-                if member not in await event.users:
+                current_members = []
+                async for user in event.users():
+                    current_members.append(user)
+                if member not in current_members:
                     await member.remove_roles(player_role)
 
     @commands.Cog.listener()
