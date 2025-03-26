@@ -501,9 +501,11 @@ class Music(commands.Cog):
         await ctx.message.delete()
         await msg.delete()
 
-    def cog_unload(self) -> None:
-        stop_lavalink(self.lavalink)
+    async def cog_unload(self) -> None:
+        for vc in self.bot.voice_clients:
+            await self.player_disconnect(vc.guild)
         await wavelink.Pool.close()
+        stop_lavalink(self.lavalink)
 
 
 async def setup(bot):
