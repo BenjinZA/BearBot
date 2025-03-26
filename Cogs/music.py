@@ -503,6 +503,7 @@ class Music(commands.Cog):
 
     def cog_unload(self) -> None:
         stop_lavalink(self.lavalink)
+        await wavelink.Pool.close()
 
 
 async def setup(bot):
