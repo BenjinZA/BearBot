@@ -90,7 +90,12 @@ def discord_client():
     @commands.is_owner()
     async def reload(ctx: commands.Context) -> None:
         for ext in client.extension_list:
-            await client.reload_extension(ext)
+            try:
+                await client.reload_extension(ext)
+            except Exception as e:
+                await ctx.send(f'Something went wrong when reloading cogs:\n `{e}`')
+
+        await ctx.send('Reloads of cogs complete')
 
     @client.hybrid_command(brief='Ban user from using commands')
     @commands.has_any_role('Admin', 'Führer')
