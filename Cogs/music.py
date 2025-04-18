@@ -197,7 +197,7 @@ class Music(commands.Cog):
     @commands.Cog.listener()
     async def on_wavelink_track_start(self, payload):
         state = self.voice_states.get(payload.player.guild.id)
-        if hasattr(payload, 'start_position'):
+        if hasattr(payload.original, 'start_position'):
             await payload.player.seek(payload.original.start_position)
         await state.set_music_msg(payload.original, payload.player)
 
@@ -268,8 +268,11 @@ class Music(commands.Cog):
                 suno_image = link.replace('cdn1.suno.ai/', 'cdn2.suno.ai/image_')[:-3] + 'jpeg'
                 suno_song = True
 
-            if re.search('(t=)\d+(s)', link):
+            if re.search('(t=)\d+(s)$', link):
                 position = int(link[link.rfind('=')+1: -1]) * 1000
+
+            if re.search('(t=)\d+$', link):
+                position = int(link[link.rfind('=')+1:]) * 1000
 
             tracks = await wavelink.Playable.search(link, source=wavelink.TrackSource.YouTube)
 
