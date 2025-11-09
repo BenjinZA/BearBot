@@ -125,7 +125,7 @@ class MusicButtonsSecondRow(discord.ui.ActionRow):
 
     @discord.ui.button(label='Search', emoji='🔍', style=discord.ButtonStyle.blurple)
     async def search_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        query_modal = MusicQueryModal(self.player)
+        query_modal = MusicQueryModal(self.player, self.state)
         await interaction.response.send_modal(query_modal)
 
 
@@ -153,37 +153,40 @@ class MusicQueueModal(discord.ui.Modal):
 
 class MusicQueryModal(discord.ui.Modal):
 
-    def __init__(self, player):
+    def __init__(self, player, state):
         super().__init__(title='BearBot Search', timeout=60)
         self.player = player
+        self.state = state
 
     query = discord.ui.TextInput(label='Search YouTube for')
 
     async def on_submit(self, interaction: discord.Interaction):
-        search_layout = MusicSearchConfirm(self.query, self.player)
+        search_layout = MusicSearchConfirm(self.query, self.player, self.state)
         await interaction.response.send_message(view=search_layout, ephemeral=True, delete_after=30)
 
 
 class MusicSearchConfirm(discord.ui.View):
 
-    def __init__(self, query, player):
+    def __init__(self, query, player, state):
         super().__init__()
         self.query = query
         self.player = player
+        self.state = state
 
     @discord.ui.button(label='View search results', style=discord.ButtonStyle.green)
     async def confirm_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        search_modal = MusicSearchModal(self.query.value, self.player)
+        search_modal = MusicSearchModal(self.query.value, self.player, self.state)
         await search_modal.search()
         await interaction.response.send_modal(search_modal)
 
 
 class MusicSearchModal(discord.ui.Modal):
 
-    def __init__(self, query, player):
+    def __init__(self, query, player, state):
         super().__init__(title='Search Results', timeout=60)
         self.query = query
         self.player = player
+        self.state = state
 
         self.found = False
         self.pick_result = None
@@ -212,6 +215,9 @@ class MusicSearchModal(discord.ui.Modal):
         else:
             track = self.options[self.pick_result.values[0]]
             await self.player.queue.put_wait(track)
+            if not self.player.playing:
+                await self.player.play(self.player.queue.get(), volume=self.state.saved_volume)
+
             await interaction.response.send_message(f'Enqueued song {self.pick_result.values[0]}', delete_after=5)
 
 
