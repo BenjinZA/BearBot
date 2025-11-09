@@ -5,7 +5,7 @@ from discord.ext import commands
 import ctypes.util
 import platform
 import json
-from Cogs.Utils import lavalink_updater
+from Cogs.Utils import lavalink_updater, music_interactions
 import subprocess
 from pathlib import Path
 import re
@@ -39,111 +39,6 @@ def stop_lavalink(lavalink):
         subprocess.call(['taskkill', '/F', '/T', '/PID', str(lavalink.pid)])
 
 
-class VolumeButtons(discord.ui.View):
-
-    def __init__(self, player, state):
-        super().__init__(timeout=None)
-        self.player = player
-        self.state = state
-
-    @discord.ui.button(label='10', style=discord.ButtonStyle.grey)
-    async def volume_10(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.player.set_volume(10)
-        self.state.saved_volume = 10
-        await interaction.message.delete()
-
-    @discord.ui.button(label='20', style=discord.ButtonStyle.grey)
-    async def volume_20(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.player.set_volume(20)
-        self.state.saved_volume = 20
-        await interaction.message.delete()
-
-    @discord.ui.button(label='30', style=discord.ButtonStyle.grey)
-    async def volume_30(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.player.set_volume(30)
-        self.state.saved_volume = 30
-        await interaction.message.delete()
-
-    @discord.ui.button(label='40', style=discord.ButtonStyle.grey)
-    async def volume_40(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.player.set_volume(40)
-        self.state.saved_volume = 40
-        await interaction.message.delete()
-
-    @discord.ui.button(label='50', style=discord.ButtonStyle.grey)
-    async def volume_50(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.player.set_volume(50)
-        self.state.saved_volume = 50
-        await interaction.message.delete()
-
-    @discord.ui.button(label='60', style=discord.ButtonStyle.grey)
-    async def volume_60(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.player.set_volume(60)
-        self.state.saved_volume = 60
-        await interaction.message.delete()
-
-    @discord.ui.button(label='70', style=discord.ButtonStyle.grey)
-    async def volume_70(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.player.set_volume(70)
-        self.state.saved_volume = 70
-        await interaction.message.delete()
-
-    @discord.ui.button(label='80', style=discord.ButtonStyle.grey)
-    async def volume_80(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.player.set_volume(80)
-        self.state.saved_volume = 80
-        await interaction.message.delete()
-
-    @discord.ui.button(label='90', style=discord.ButtonStyle.grey)
-    async def volume_90(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.player.set_volume(90)
-        self.state.saved_volume = 90
-        await interaction.message.delete()
-
-    @discord.ui.button(label='100', style=discord.ButtonStyle.grey)
-    async def volume_100(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.player.set_volume(100)
-        self.state.saved_volume = 100
-        await interaction.message.delete()
-
-
-class MusicButtons(discord.ui.View):
-
-    def __init__(self, player, state):
-        super().__init__(timeout=None)
-        self.player = player
-        self.state = state
-
-    @discord.ui.button(label='Pause', emoji='⏸️', style=discord.ButtonStyle.grey)
-    async def play_pause(self, interaction: discord.Interaction, button: discord.ui.Button):
-        if self.player.paused:
-            await self.player.pause(False)
-            button.style=discord.ButtonStyle.grey
-            button.label = 'Pause'
-            button.emoji = '⏸️'
-            await interaction.response.edit_message(view=self)
-        else:
-            await self.player.pause(True)
-            button.style=discord.ButtonStyle.green
-            button.label = 'Play'
-            button.emoji = '▶️'
-            await interaction.response.edit_message(view=self)
-
-    @discord.ui.button(label='Skip', emoji='⏭️', style=discord.ButtonStyle.blurple)
-    async def skip_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.player.stop()
-        await interaction.response.edit_message(view=self)
-
-    @discord.ui.button(label='Set volume', emoji='🔊', style=discord.ButtonStyle.green)
-    async def volume_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.channel.send('Pick volume', view=VolumeButtons(self.player, self.state))
-        await interaction.response.edit_message(view=self)
-
-    @discord.ui.button(label='Disconnect', emoji='⏹️', style=discord.ButtonStyle.red)
-    async def disconnect_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.state.music.player_disconnect(interaction.guild)
-
-
 class VoiceState:
 
     def __init__(self, bot, guild, music):
@@ -155,6 +50,7 @@ class VoiceState:
         self.music_msg = None
         self.music_channel = None
         self.voice_channel = None
+        self.layout = None
 
     async def set_music_msg(self, song, player):
         if hasattr(song, 'embed_title'):
@@ -164,10 +60,13 @@ class VoiceState:
             embed_music_msg = discord.Embed(title='BearBot Music Player', description=f'Now playing: [{song.title}]({song.uri})')
             embed_music_msg.set_image(url=song.artwork)
 
+        self.layout = music_interactions.MusicView(player, self, embed_music_msg)
+        await self.layout.create_music_msg()
+
         if self.music_msg is None:
-            self.music_msg = await self.music_channel.send(embed=embed_music_msg, view=MusicButtons(player, self))
+            self.music_msg = await self.music_channel.send(view=self.layout)
         else:
-            self.music_msg = await self.music_msg.edit(embed=embed_music_msg)
+            self.music_msg = await self.music_msg.edit(view=self.layout)
 
 
 class Music(commands.Cog):
@@ -210,9 +109,8 @@ class Music(commands.Cog):
         node = wavelink.Pool.get_node()
         player = node.get_player(guild.id)
 
-        embed = state.music_msg.embeds[0]
-        embed.title = embed.title + ' (disconnected)'
-        state.music_msg = await state.music_msg.edit(embed=embed, view=None)
+        await state.layout.disconnect_msg()
+        state.music_msg = await state.music_msg.edit(view=state.layout)
 
         await player.disconnect(force=True)
         del self.voice_states[guild.id]
