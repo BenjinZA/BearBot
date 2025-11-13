@@ -214,12 +214,13 @@ class MusicSearchModal(discord.ui.Modal):
             await interaction.response.defer()
         else:
             track = self.options[self.pick_result.values[0]]
-            await self.player.queue.put_wait(track)
-
-            await interaction.response.send_message(f'Enqueued song {self.pick_result.values[0]}', delete_after=5)
 
             if not self.player.playing:
-                await self.player.play(self.player.queue.get(), volume=self.state.saved_volume)
+                await self.player.play(track, volume=self.state.saved_volume)
+            else:
+                await self.player.queue.put_wait(track)
+
+            await interaction.response.send_message(f'Enqueued song {self.pick_result.values[0]}', delete_after=5)
 
 
 class MusicView(discord.ui.LayoutView):
