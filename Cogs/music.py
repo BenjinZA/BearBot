@@ -195,11 +195,11 @@ class Music(commands.Cog):
                     track.embed_title = f'[{title}]({track.uri})'
                     track.embed_image = track.artwork
 
-                if not player.playing:
-                    await player.play(track, volume=state.saved_volume)
-                else:
-                    await player.queue.put_wait(track)
+                await player.queue.put_wait(track)
                 await ctx.send(f'Enqueued song {title}', delete_after=5)
+
+            if not player.playing and player.queue:
+                await player.play(await player.queue.get_wait(), volume=state.saved_volume)
 
         except Exception as e:
             error_message = 'An error occurred trying to add the song to the queue:'
